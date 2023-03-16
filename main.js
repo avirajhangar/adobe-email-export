@@ -1,9 +1,21 @@
-const { selection } = require("scenegraph")
+const {
+  selection,
+  Artboard,
+  Ellipse,
+  Group,
+  Line,
+  Path,
+  Polygon,
+  Rectangle,
+  Text,
+} = require("scenegraph");
+
+const fileSystem = require("uxp").storage.localFileSystem;
 let panel;
+let extractLocation;
 
 function create() {
-    const HTML =
-        `<style>
+  const HTML = `<style>
             .break {
                 flex-wrap: wrap;
             }
@@ -37,48 +49,68 @@ function create() {
             <footer><button id="ok" type="submit" uxp-variant="cta">Apply</button></footer>
         </form>
         <p id="warning">This plugin requires you to select a rectangle in the document. Please select a rectangle.</p>
-        `
-    function increaseRectangleSize() {
-        const { editDocument } = require("application");
-        const height = Number(document.querySelector("#txtV").value);
-        const width = Number(document.querySelector("#txtH").value);
+        `;
+  function increaseRectangleSize() {
+    const { editDocument } = require("application");
+    const height = Number(document.querySelector("#txtV").value);
+    const width = Number(document.querySelector("#txtH").value);
 
-        editDocument({ editLabel: "Increase rectangle size" }, function (selection) {
-            const selectedRectangle = selection.items[0];
-            selectedRectangle.width += width
-            selectedRectangle.height += height
-        })
-    }
+    editDocument(
+      { editLabel: "Increase rectangle size" },
+      function (selection) {
+        const selectedRectangle = selection.items[0];
+        selectedRectangle.width += width;
+        selectedRectangle.height += height;
+      }
+    );
+  }
 
-    panel = document.createElement("div");
-    panel.innerHTML = HTML;
-    panel.querySelector("form").addEventListener("submit", increaseRectangleSize);
+  panel = document.createElement("div");
+  panel.innerHTML = HTML;
+  panel.querySelector("form").addEventListener("submit", increaseRectangleSize);
 
-    return panel;
+  return panel;
 }
 
 function show(event) {
-    if (!panel) event.node.appendChild(create());
+  if (!panel) event.node.appendChild(create());
 }
 
 function update() {
-    const { Rectangle } = require("scenegraph");
-    let form = document.querySelector("form");
-    let warning = document.querySelector("#warning");
-    if (!selection || !(selection.items[0] instanceof Rectangle)) {
-        form.className = "hide";
-        warning.className = "show";
-    } else {
-        form.className = "show";
-        warning.className = "hide";
-    }
+  const { Rectangle } = require("scenegraph");
+  let form = document.querySelector("form");
+  let warning = document.querySelector("#warning");
+  if (!selection || !(selection.items[0] instanceof Rectangle)) {
+    form.className = "hide";
+    warning.className = "show";
+  } else {
+    form.className = "show";
+    warning.className = "hide";
+  }
+}
+async function browseForExportFolder() {
+  try {
+    return await fileSystem.getFolder();
+  } catch (error) {
+    return error;
+  }
+}
+
+/**
+ * 
+ * function to get the path of 
+ */
+async function sceneNodeListAsHTML(selection) {
+  if (selection.items.length > 0 && selection.items[0] instanceof Artboard) {
+    extractLocation = await browseForExportFolder();
+    console.log(extractLocation);
+  } else {
+    console.log("Artboard");
+  }
 }
 
 module.exports = {
-    panels: {
-        enlargeRectangle: {
-            show,
-            update
-        }
-    }
+  commands: {
+    sceneNodeListAsHTML: sceneNodeListAsHTML,
+  },
 };

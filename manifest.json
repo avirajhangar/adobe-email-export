@@ -22,9 +22,9 @@
   ],
   "uiEntryPoints": [
     {
-      "type": "panel",
-      "label": "Enlarge a Rectangle",
-      "panelId": "enlargeRectangle"
+      "type": "menu",
+      "label": "Extract artboard as HTML markup",
+      "commandId": "sceneNodeListAsHTML"
     }
   ]
 }
